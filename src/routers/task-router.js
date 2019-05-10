@@ -44,7 +44,13 @@ taskRouter.patch('/tasks/:id', async (req, res) => {
     })
 
     try {
-        const task = await Task.findByIdAndUpdate(_id, req.body, {new: true, runValidators: true})
+        const task = await Task.findById(_id)
+        updates.forEach((update) => {
+            task[update] = req.body[update]
+        })
+        await task.save()
+        //Replaced below code with the above because findByIdAndUpdate bypasses middleware of save() during which we hash the password
+        //const task = await Task.findByIdAndUpdate(_id, req.body, {new: true, runValidators: true})
         if (!task) {
             res.status(404).send("Task not found")
         }

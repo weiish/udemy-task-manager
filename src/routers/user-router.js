@@ -3,12 +3,26 @@ const User = require('../models/user')
 
 const userRouter = new express.Router()
 
+//LOGIN
+userRouter.post('/users/login', async (req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password)
+        const token = await user.generateAuthToken()
+        console.log(token)
+        res.status(200).send({user, token})
+    } catch (e) {
+        res.status(400).send(e)
+    }   
+})
+
 //CREATE
+//Sign up
 userRouter.post('/users', async (req, res) => {
     const user = new User(req.body) //Pass the body user details to the constructor function
     try {
+        const token = await user.generateAuthToken()
         await user.save()
-        res.status(201).send(user)
+        res.status(201).send({user, token})
     } catch (e) { 
         res.status(400).send(e)
     }
@@ -49,7 +63,13 @@ userRouter.patch('/users/:id', async (req, res) => {
     }
     const _id = req.params.id
     try {
-        const user = await User.findByIdAndUpdate(_id, req.body, {new: true, runValidators: true})
+        const user = await User.findById(_id)
+        updates.forEach((update) => {
+            user[update] = req.body[update]
+        })
+        await user.save()
+        //Replaced below code with above because the findByIdAndUpdate bypasses the save() middleware
+        //const user = await User.findByIdAndUpdate(_id, req.body, {new: true, runValidators: true})
         if (!user) {
             res.status(404).send("User not found")
         }
