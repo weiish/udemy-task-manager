@@ -6,7 +6,7 @@ const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization').replace('Bearer ', '')
         const decodedToken = jwt.verify(token, 'thisisasecret')
-        const user = User.findById({_id: decodedToken._id, 'tokens.token': token}) //Why 'tokens.token'?
+        const user = await User.findOne({_id: decodedToken._id, 'tokens.token': token}) //Why 'tokens.token'?
 
         if (!user) {
             throw new Error()
@@ -15,6 +15,8 @@ const auth = async (req, res, next) => {
         req.user = user //Why this?
         next()
     } catch (e) {
-
+        res.status(401).send({ error: 'Please authenticate.'})
     }
 }
+
+module.exports = auth

@@ -19,9 +19,9 @@ const PORT = process.env.PORT || 3000
 //     }
 // })
 
-app.use((req, res, next) => {
-    res.status(503).send('The site is currently undergoing maintenance. Please check back at (1 PM UTC)')
-})
+// app.use((req, res, next) => {
+//     res.status(503).send('The site is currently undergoing maintenance. Please check back at (1 PM UTC)')
+// })
 
 app.use(express.json())
 app.use(userRouter)
