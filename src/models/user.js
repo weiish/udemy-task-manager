@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Task = require('./task')
 
 const userSchema = mongoose.Schema({
     name: {
@@ -47,6 +48,8 @@ const userSchema = mongoose.Schema({
             required: true
         }
     }]
+}, {
+    timestamps: true
 })
 
 //Sets up mongoose middleware to run before the 'save' function is used on this schema
@@ -58,6 +61,19 @@ userSchema.pre('save', async function(next) {
     next()
 })
 
+userSchema.pre('remove', async function(next) {
+    const user = this
+    await Task.deleteMany({ owner: user._id })
+    next()
+})
+
+userSchema.virtual('tasks', {
+    ref: 'Task', //Mongoose Model string
+    localField: '_id', //The identifying field in the current schema that should match
+    'foreignField': 'owner' //The identifying field in the 'Task' schema that should match the localField
+})
+
+
 //Sets up a custom function that can be run on any objects created with this mongoose model
 
 //This is an INSTANCED function, meaning it is run on a specific instance of the user model, and will have different effects depending on which user it is run on.
@@ -67,6 +83,19 @@ userSchema.methods.generateAuthToken = async function() {
     user.tokens.push({token})
     await user.save()
     return token
+}
+
+
+//toJSON is called whenever JSON.stringify() is used on an object. Therefore, by defining this, whenever we use response.send(user), express stringifies it automatically, 
+//which causes this function to run and delete the sensitive information
+userSchema.methods.toJSON = function() {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+
+    return userObject
 }
 
 
