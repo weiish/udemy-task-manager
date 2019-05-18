@@ -19,14 +19,36 @@ taskRouter.post('/tasks', auth, async (req, res) => {
 })
 
 //GET ALL TASKS OF USER
+// After lesson 119 we are editing this to filter the data to get exactly what we want
 taskRouter.get('/tasks', auth, async (req, res) => {
+    const match = {}
+    const sortBy = {}
+
+    if (req.query.completed) {
+        match.completed = req.query.completed === 'true'
+    }
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split(':')
+        for (var i = 0; i < parts.length; i+=2) {
+            sortBy[parts[i]] = parts[i+1] === 'desc' ? -1 : 1
+        }
+    }
+    
     try {
         // //Method 1
         // const tasks = await Task.find({ owner: req.user._id})
         // res.status(200).send(tasks)
 
         //Method 2
-        await req.user.populate('tasks').execPopulate()
+        await req.user.populate({
+            path: 'tasks',
+            match,
+            options: {
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort: sortBy
+            }
+        }).execPopulate()
         res.status(200).send(req.user.tasks)
     } catch (e) {
         res.status(400).send(e)
