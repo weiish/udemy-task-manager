@@ -1,7 +1,61 @@
 const express = require('express')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
+const multer = require('multer')
 const userRouter = new express.Router()
+
+//PROFILE PICTURE UPLOAD
+const avatarUpload = multer({
+    //dest: 'avatars', 
+    //By deleting dest, it causes multer to pass the file data to the callback as req.file
+    limits: {
+        fileSize: 1000000 // Limit of 1 MB
+    },
+    fileFilter(req, file, cb) { 
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Please upload an image'))
+        }
+        
+        cb(undefined, true) // No error, allow the upload
+        // cb(undefined, false) // No error, don't allow the upload
+    }
+})
+
+userRouter.post('/users/me/avatar', auth, avatarUpload.single('avatar'), async (req, res) => {
+    if (!req.file) {
+        res.status(400).send()
+    }
+    req.user.avatar = req.file.buffer
+    await req.user.save()
+    res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message})
+})
+
+//PROFILE PICTURE DELETE
+userRouter.delete('/users/me/avatar', auth, async (req, res) => {
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message})
+})
+
+//PROFILE PICTURE ACCESS BY ID
+userRouter.get('/users/:id/avatar', async(req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+        if (!user || !user.avatar) {
+            throw new Error('Unable to find user')
+        }
+        res.set('Content-Type', 'image/jpg') //Content type is a VERY popular header to set, 
+        //haven't had to use it yet because we've only been sending JSON and express automatically sets it to application/json type when we do that
+        res.send(user.avatar)
+    } catch (e) { 
+        res.status(404).send({error: e.message})
+    }
+})
+
 
 //LOGIN
 userRouter.post('/users/login', async (req, res) => {

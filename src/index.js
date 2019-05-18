@@ -11,6 +11,8 @@ require('./db/mongoose.js')
 const app = express()
 const PORT = process.env.PORT || 3000
 
+// Middleware Challenge
+//======================================
 // app.use((req, res, next) => {
 //     if (req.method === 'GET') {
 //         res.send('GET is disabled')
@@ -23,6 +25,16 @@ const PORT = process.env.PORT || 3000
 //     res.status(503).send('The site is currently undergoing maintenance. Please check back at (1 PM UTC)')
 // })
 
+// Multer file uploading challenge
+// =======================================
+const multer = require('multer')
+const upload = multer({
+    dest: 'images'
+})
+app.post('/upload', upload.single('upload'), (req, res) => {
+    res.send()
+})
+
 app.use(express.json())
 app.use(userRouter)
 app.use(taskRouter)
@@ -31,6 +43,8 @@ app.listen(PORT, (result) => {
     console.log('Listening on port',PORT)
 })
 
+// bcrypt password encryption challenge
+// =======================================
 // const bcrypt = require('bcryptjs')
 
 // const test = async () => {
