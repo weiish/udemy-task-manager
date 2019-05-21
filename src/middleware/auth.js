@@ -5,7 +5,7 @@ const User = require('../models/user')
 const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization').replace('Bearer ', '')
-        const decodedToken = jwt.verify(token, 'thisisasecret')
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET)
         const user = await User.findOne({_id: decodedToken._id, 'tokens.token': token}) //Why 'tokens.token'? because tokens is an array of objects that contain an _id and a token property
 
         if (!user) {

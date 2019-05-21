@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const Task = require('./task')
 
+
 const userSchema = mongoose.Schema({
     name: {
         type: String,
@@ -82,7 +83,7 @@ userSchema.virtual('tasks', {
 //This is an INSTANCED function, meaning it is run on a specific instance of the user model, and will have different effects depending on which user it is run on.
 userSchema.methods.generateAuthToken = async function() {
     const user = this
-    const token = await jwt.sign({_id: user._id.toString()}, 'thisisasecret')
+    const token = await jwt.sign({_id: user._id.toString()}, process.env.JWT_SECRET)
     user.tokens.push({token})
     await user.save()
     return token
@@ -97,6 +98,7 @@ userSchema.methods.toJSON = function() {
 
     delete userObject.password
     delete userObject.tokens
+    delete userObject.avatar
 
     return userObject
 }
