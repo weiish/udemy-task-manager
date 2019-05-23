@@ -103,7 +103,7 @@ userRouter.post('/users', async (req, res) => {
     try {
         const token = await user.generateAuthToken()
         await user.save()
-        sendWelcomeEmail(user.email, user.name)
+        //sendWelcomeEmail(user.email, user.name)
         res.status(201).send({user, token})
     } catch (e) { 
         res.status(400).send(e)
@@ -162,7 +162,7 @@ userRouter.patch('/users/me', auth, async (req, res) => {
 //DELETE
 userRouter.delete('/users/me', auth, async (req, res) => {
     try {
-        sendGoodbyeEmail(req.user.email, req.user.name)
+        //sendGoodbyeEmail(req.user.email, req.user.name)
         req.user.remove()
         res.send(req.user)
     } catch (e) {
